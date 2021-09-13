@@ -1,37 +1,20 @@
-/*
-* Prefixed by https://autoprefixer.github.io
-* PostCSS: v8.3.6,
-* Autoprefixer: v10.3.1
-* Browsers: last 4 version
-*/
-
 .grid {
-    /*display: -ms-grid;*/
-    /*display: grid;*/
-    /*grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));*/
-    /*-webkit-box-align: start;*/
-    /*-ms-flex-align: start;*/
-    /*align-items: flex-start;*/
-    /*font-size: 20px;*/
-    /*grid-gap: 10px;*/
-    /*grid-auto-rows: 1px;*/
     margin: 0 auto;
-    min-height: 100vh;
     box-sizing: border-box;
+    border: 1px dashed black;
 }
 
 .grid__item {
-    border: 1px solid #d8d8d8;
-    border-radius: 5px;
-    /*-ms-grid-row-span: var(--row-span, 20);*/
-    /*grid-row-end: span var(--row-span, 20);*/
     position: absolute;
 }
 
 .grid__item > div {
     padding: 20px;
-    -webkit-box-sizing: border-box;
+    border: 1px solid #d8d8d8;
+    border-radius: 5px;
+    box-shadow: rgb(0 0 0 / 20%) 0px 3px 3px -2px, rgb(0 0 0 / 14%) 0px 3px 4px 0px, rgb(0 0 0 / 12%) 0px 1px 8px 0px;
     box-sizing: border-box;
+    width: 376px;
 }
 .grid__answer {
     border-top: 1px solid black;
@@ -44,4 +27,15 @@ img {
     height: 300px;
     -o-object-fit: cover;
     object-fit: cover;
+}
+.load-more {
+    margin: 30px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    max-width: 600px;
+    width: 100%;
+    border: 1px solid;
+    cursor: pointer;
 }
