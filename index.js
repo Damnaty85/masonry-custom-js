@@ -2,24 +2,28 @@ const wrapper = document.querySelector('.grid');
 const elements = [...wrapper.children];
 const loadMore = document.querySelector(".load-more");
 
-if (window.innerWidth >= 560) {
-	loadMore.addEventListener('click', renderGrid);
-	document.addEventListener('DOMContentLoaded', renderGrid);
-	window.addEventListener("orientationchange", renderGrid);
-	window.addEventListener("resize", debounce(() => {
-		renderGrid();
-	}));
-}
+loadMore.addEventListener('click', renderGrid);
+document.addEventListener('DOMContentLoaded', renderGrid);
+window.addEventListener("orientationchange", debounce(() => {
+	renderGrid();
+}));
+window.addEventListener("resize", debounce(() => {
+	renderGrid();
+}));
+
 
 function renderGrid() {
 	let WIDTH = 1170;
-	let GAP = window.innerWidth <= WIDTH ? 14 : 35;
-	let COLUMNS = window.innerWidth <= 820 ? 2 : 3;
+	let GAP = window.innerWidth <= 560 ? 20 : window.innerWidth >= WIDTH ? 35 : 14;
+	let COLUMNS = window.innerWidth <= 560 ? 1 : window.innerWidth >= 820 ? 3 : 2;
 
-	const widthElement = `${(parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - GAP * 2) / COLUMNS}px`;
+	let width = window.innerWidth >= 560 ? (parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - GAP * 2) / COLUMNS : parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) / COLUMNS;
+
+	const widthElement = `${width}px`;
+
 	wrapper.removeAttribute('style');
     	wrapper.style.maxWidth = `${WIDTH}px`;
-
+	
 	elements.forEach((element) => {
 		element.removeAttribute('style');
 	})
@@ -35,7 +39,7 @@ function calculateElementPosition (width, calcWidth, col, indent) {
 		if (window.innerWidth <= width) {
 			elements[0].style.width = calcWidth;
         	elements[i].style.width = calcWidth;
-		}
+	}
         if (i % col == 0) {
             top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
             elements[i].style.top = `${top}px`;
@@ -88,6 +92,6 @@ function debounce(func){
     var timer;
     return function(event){
         if (timer) clearTimeout(timer);
-        timer = setTimeout(func, 100, event);
+        timer = setTimeout(func, 200, event);
     };
 }
