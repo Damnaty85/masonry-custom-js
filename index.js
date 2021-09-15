@@ -2,44 +2,52 @@ const wrapper = document.querySelector('.grid');
 const elements = [...wrapper.children];
 const loadMore = document.querySelector(".load-more");
 
-if (window.innerWidth >= 521) {
+if (window.innerWidth >= 560) {
 	loadMore.addEventListener('click', renderGrid);
 	document.addEventListener('DOMContentLoaded', renderGrid);
-	window.addEventListener("orientationchange", function() {
+	window.addEventListener("orientationchange", renderGrid);
+	window.addEventListener("resize", debounce(() => {
 		renderGrid();
-	});
-	window.addEventListener("resize", renderGrid);
+	}));
 }
 
 function renderGrid() {
 	let WIDTH = 1170;
 	let GAP = window.innerWidth <= WIDTH ? 14 : 35;
-	let COLUMNS = window.innerWidth <= 768 ? 2 : 3;
-	let NEW_TOP;
-	let NEW_LEFT;
+	let COLUMNS = window.innerWidth <= 820 ? 2 : 3;
 
 	const widthElement = `${(parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - GAP * 2) / COLUMNS}px`;
-    	wrapper.style.maxWidth = `${WIDTH}px`;
+	wrapper.removeAttribute('style');
+    wrapper.style.maxWidth = `${WIDTH}px`;
 
+    elements.forEach((element) => {
+    	element.removeAttribute('style');
+    })
+
+	calculateElementPosition(WIDTH, widthElement, COLUMNS, GAP)
+	calculateContainerHeight(COLUMNS, GAP);
+}
+
+function calculateElementPosition (width, calcWidth, col, indent) {
+	let top;
+	let left;
     for (let i = 1; i < elements.length; i++) {
-	if (window.innerWidth <= WIDTH) {
-		elements[0].style.width = widthElement;
-        	elements[i].style.width = widthElement;
-	}
-        if (i % COLUMNS == 0) {
-            NEW_TOP = (elements[i - COLUMNS].offsetTop + elements[i - COLUMNS].offsetHeight) + GAP;
-            elements[i].style.top = `${NEW_TOP}px`;
+		if (window.innerWidth <= width) {
+			elements[0].style.width = calcWidth;
+        	elements[i].style.width = calcWidth;
+		}
+        if (i % col == 0) {
+            top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
+            elements[i].style.top = `${top}px`;
         } else {
-            if (elements[i - COLUMNS]) {
-                NEW_TOP = (elements[i - COLUMNS].offsetTop + elements[i - COLUMNS].offsetHeight) + GAP;
-                elements[i].style.top = `${NEW_TOP}px`;
+            if (elements[i - col]) {
+                top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
+                elements[i].style.top = `${top}px`;
             }
-            NEW_LEFT = (elements[i - 1].offsetLeft + elements[i - 1].offsetWidth) + GAP;
-            elements[i].style.left = `${NEW_LEFT + 1}px`;
+            left = (elements[i - 1].offsetLeft + elements[i - 1].offsetWidth) + indent;
+            elements[i].style.left = `${left + 1}px`;
         }
     }
-
-	calculateContainerHeight(COLUMNS, GAP);
 }
 
 function calculateHeightInColumn(array, col) {
@@ -81,6 +89,6 @@ function debounce(func){
     var timer;
     return function(event){
         if (timer) clearTimeout(timer);
-        timer = setTimeout(func, 500, event);
+        timer = setTimeout(func, 100, event);
     };
 }
