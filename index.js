@@ -2,6 +2,7 @@ const wrapper = document.querySelector('.grid');
 const elements = [...wrapper.children];
 const loadMore = document.querySelector(".load-more");
 
+
 loadMore.addEventListener('click', renderGrid);
 document.addEventListener('DOMContentLoaded', renderGrid);
 window.addEventListener("orientationchange", debounce(() => {
@@ -13,23 +14,26 @@ window.addEventListener("resize", debounce(() => {
 
 
 function renderGrid() {
-	let WIDTH = 1170;
-	let GAP = window.innerWidth <= 560 ? 20 : window.innerWidth >= WIDTH ? 35 : 14;
-	let COLUMNS = window.innerWidth <= 560 ? 1 : window.innerWidth >= 820 ? 3 : 2;
+	const CONTAINER_WIDTH = 1170;
+	const TABLET_WIDTH = 820;
+	const MOBILE_WIDTH = 560;
+	
+	let INDENT = window.innerWidth <= MOBILE_WIDTH ? 20 : window.innerWidth >= CONTAINER_WIDTH ? 35 : 10;
+	let COLUMNS = window.innerWidth <= MOBILE_WIDTH ? 1 : window.innerWidth >= TABLET_WIDTH ? 3 : 2;
 
-	let width = window.innerWidth >= 560 ? (parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - GAP * 2) / COLUMNS : parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) / COLUMNS;
+	let width = window.innerWidth >= MOBILE_WIDTH ? (parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - INDENT * 2) / COLUMNS : parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) / COLUMNS;
 
 	const widthElement = `${width}px`;
 
 	wrapper.removeAttribute('style');
-    	wrapper.style.maxWidth = `${WIDTH}px`;
-	
-	elements.forEach((element) => {
-		element.removeAttribute('style');
-	})
+    wrapper.style.maxWidth = `${CONTAINER_WIDTH}px`;
 
-	calculateElementPosition(WIDTH, widthElement, COLUMNS, GAP)
-	calculateContainerHeight(COLUMNS, GAP);
+    elements.forEach((element) => {
+    	element.removeAttribute('style');
+    })
+
+	calculateElementPosition(CONTAINER_WIDTH, widthElement, COLUMNS, INDENT)
+	calculateContainerHeight(COLUMNS, INDENT);
 }
 
 function calculateElementPosition (width, calcWidth, col, indent) {
@@ -38,20 +42,20 @@ function calculateElementPosition (width, calcWidth, col, indent) {
     	for (let i = 1; i < elements.length; i++) {
 		if (window.innerWidth <= width) {
 			elements[0].style.width = calcWidth;
-        	elements[i].style.width = calcWidth;
+			elements[i].style.width = calcWidth;
+		}
+		if (i % col == 0) {
+		    top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
+		    elements[i].style.top = `${top}px`;
+		} else {
+		    if (elements[i - col]) {
+			top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
+			elements[i].style.top = `${top}px`;
+		    }
+		    left = (elements[i - 1].offsetLeft + elements[i - 1].offsetWidth) + indent;
+		    elements[i].style.left = `${left + 1}px`;
+		}
 	}
-        if (i % col == 0) {
-            top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
-            elements[i].style.top = `${top}px`;
-        } else {
-            if (elements[i - col]) {
-                top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
-                elements[i].style.top = `${top}px`;
-            }
-            left = (elements[i - 1].offsetLeft + elements[i - 1].offsetWidth) + indent;
-            elements[i].style.left = `${left + 1}px`;
-        }
-    }
 }
 
 function calculateHeightInColumn(array, col) {
@@ -65,10 +69,11 @@ function calculateHeightInColumn(array, col) {
 
 function calculateContainerHeight (col, indent) {
 	const elementsHeightColumnOne = [];
-    	const elementsHeightColumnTwo = [];
-    	const elementsHeightColumnThree = [];
-	
-	for (let [index, element] of elements.entries()) {
+    const elementsHeightColumnTwo = [];
+    const elementsHeightColumnThree = [];
+
+    for (let [index, element] of elements.entries()) {
+
 		if (index % col == 0) {
 			elementsHeightColumnOne.push(element.offsetHeight + indent);
 		} else if (index % col == 1) {
@@ -76,7 +81,7 @@ function calculateContainerHeight (col, indent) {
 		} else {
 			elementsHeightColumnThree.push(element.offsetHeight + indent);
 		}
-	}
+    }
 
 	const heightInColumnOne = calculateHeightInColumn(elementsHeightColumnOne, col);
 	const heightInColumnTwo = calculateHeightInColumn(elementsHeightColumnTwo, col);
@@ -95,3 +100,4 @@ function debounce(func){
         timer = setTimeout(func, 200, event);
     };
 }
+
