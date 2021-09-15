@@ -18,11 +18,11 @@ function renderGrid() {
 
 	const widthElement = `${(parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - GAP * 2) / COLUMNS}px`;
 	wrapper.removeAttribute('style');
-    wrapper.style.maxWidth = `${WIDTH}px`;
+    	wrapper.style.maxWidth = `${WIDTH}px`;
 
-    elements.forEach((element) => {
-    	element.removeAttribute('style');
-    })
+	elements.forEach((element) => {
+		element.removeAttribute('style');
+	})
 
 	calculateElementPosition(WIDTH, widthElement, COLUMNS, GAP)
 	calculateContainerHeight(COLUMNS, GAP);
@@ -31,7 +31,7 @@ function renderGrid() {
 function calculateElementPosition (width, calcWidth, col, indent) {
 	let top;
 	let left;
-    for (let i = 1; i < elements.length; i++) {
+    	for (let i = 1; i < elements.length; i++) {
 		if (window.innerWidth <= width) {
 			elements[0].style.width = calcWidth;
         	elements[i].style.width = calcWidth;
@@ -61,11 +61,10 @@ function calculateHeightInColumn(array, col) {
 
 function calculateContainerHeight (col, indent) {
 	const elementsHeightColumnOne = [];
-    const elementsHeightColumnTwo = [];
-    const elementsHeightColumnThree = [];
-
-    for (let [index, element] of elements.entries()) {
-
+    	const elementsHeightColumnTwo = [];
+    	const elementsHeightColumnThree = [];
+	
+	for (let [index, element] of elements.entries()) {
 		if (index % col == 0) {
 			elementsHeightColumnOne.push(element.offsetHeight + indent);
 		} else if (index % col == 1) {
@@ -73,7 +72,7 @@ function calculateContainerHeight (col, indent) {
 		} else {
 			elementsHeightColumnThree.push(element.offsetHeight + indent);
 		}
-    }
+	}
 
 	const heightInColumnOne = calculateHeightInColumn(elementsHeightColumnOne, col);
 	const heightInColumnTwo = calculateHeightInColumn(elementsHeightColumnTwo, col);
