@@ -1,3 +1,4 @@
+// reviews js start
 const wrapper = document.querySelector('.grid');
 const elements = [...wrapper.children];
 const loadMore = document.querySelector(".load-more");
