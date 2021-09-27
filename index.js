@@ -108,15 +108,15 @@ function enlargeImageTemplate() {
     return (`
 		<div class="enlarge-image">
             <div class="dynamic__container"></div>
-			<div class="enlarge-image__close">Close</div>
+			<div class="enlarge-image__close"><svg><use href="/front/img/review-image/sprite.svg#closeForm"></svg></div>
 		</div>
 	`)
 }
 
 function arrowSliderTemplate() {
     return (`
-		<div class="enlarge-image__arrow _enlarge-image__next _hidden">next</div>
-		<div class="enlarge-image__arrow _enlarge-image__prev _hidden">prev</div>
+		<div class="enlarge-image__arrow _enlarge-image__next _hidden"><svg><use href="/front/img/review-image/sprite.svg#arrowMFAnt"></div>
+		<div class="enlarge-image__arrow _enlarge-image__prev _hidden"><svg><use href="/front/img/review-image/sprite.svg#arrowMFAnt"></div>
 	`)
 }
 
@@ -137,6 +137,9 @@ function userDataTemplate(name, date, grade, comentary) {
 }
 
 function eventImageHandler(selector) {
+    const IMAGE_WIDTH = window.innerWidth <= 1200 ? window.innerWidth / 1.2 : 1000
+    const IMAGE_HEIGHT = 600 / (1000 / IMAGE_WIDTH);
+
     const images = [...document.querySelectorAll(selector)]
     const scrollWidth = window.innerWidth - document.documentElement.clientWidth;
     const body = document.querySelector('body');
@@ -176,8 +179,8 @@ function eventImageHandler(selector) {
             container.classList.add('_opened');
 
             setTimeout(() => {
-                imageContainer.style = `width:1000px;left:50%;top:50%;transform: translate(-50%, -50%);`
-                image.style.height = `600px`;
+                imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate(-50%, -50%);`
+                image.style.height = `${IMAGE_HEIGHT}px`;
                 imageContainer.parentElement.insertAdjacentHTML('beforeend', arrowSliderTemplate());
 
                 const next = container.querySelector("._enlarge-image__next");
@@ -187,6 +190,33 @@ function eventImageHandler(selector) {
                     imageContainer.insertAdjacentHTML('beforeend', userDataTemplate(userName, userDate, userGrade, userCommentary))
                     next.classList.remove('_hidden');
                     prev.classList.remove('_hidden');
+
+                    imageContainer.addEventListener('touchstart', function (evt) {
+                        console.log('touchstart', evt);
+                    });
+                    imageContainer.addEventListener('touchmove', function (evt) {
+                        let touches = evt.changedTouches;
+
+                        for(var i = 0; i < touches.length; i++) {
+                            let x = touches[i].pageX;
+                            let rect = this.getBoundingClientRect();
+
+                            if((rect.x) < 0){
+                                console.log(rect.left)
+                            }
+
+                            if((rect.x + rect.width) > window.innerWidth) {
+                                console.log(rect.left)
+                            }
+                         
+                            imageContainer.style.left = `${x}px`
+                        }
+
+                       
+                    });
+                    imageContainer.addEventListener('touchend', function (e) {
+                        imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate(-50%, -50%);`
+                    });
                 }, 100)
 
                 const nextElement = parseInt(this.dataset.position) >= images.length - 1 ? parseInt(this.dataset.position) : parseInt(this.dataset.position) + 1;
@@ -195,17 +225,19 @@ function eventImageHandler(selector) {
                 next.setAttribute('data-next', nextElement);
                 prev.setAttribute('data-prev', prevElement);
 
-                changeImage(next, images);
-                changeImage(prev, images);
+                changeImage(next, images, IMAGE_WIDTH);
+                changeImage(prev, images, IMAGE_WIDTH);
             }, 10)
 
-            closedEnlargeImage('.enlarge-image__close');
+            closedEnlargeImage(".enlarge-image__close", ".enlarge-image");
+            closedEnlargeImage(".enlarge-image", ".enlarge-image");
         })
     }
 }
 
-function changeImage(selector, array) {
-    selector.addEventListener('click', function() {
+function changeImage(selector, array, imageWidth) {
+    selector.addEventListener('click', function(evt) {
+        evt.stopPropagation();
         let current = document.querySelector('[data-index]');
         let j = Number(current.dataset.index);
         if (this.dataset.next) {
@@ -219,14 +251,14 @@ function changeImage(selector, array) {
                 const commentaryNext = next.dataset.caption;
 
                 setTimeout(() => {
-                    current.style = `width: 1000px; left: -100%; top: 50%; transform: translate(-50%, -50%);`;
+                    current.style = `width: ${imageWidth}px; left: -100%; top: 50%; transform: translate(-50%, -50%);`;
                     let clone = current.cloneNode(true);
                     clone.classList.add('_rerender-image');
                     current.parentElement.insertAdjacentElement('afterbegin', clone);
-                    clone.style = `width: 1000px; right: -100%; top: 50%; transform: translate(100%, -50%);`;
+                    clone.style = `width: ${imageWidth}px; right: -100%; top: 50%; transform: translate(100%, -50%);`;
                     setTimeout(() => {
                         current.remove();
-                        clone.style = `width: 1000px; right: 50%; top: 50%; transform: translate(50%, -50%);`
+                        clone.style = `width: ${imageWidth}px; right: 50%; top: 50%; transform: translate(50%, -50%);`
                         clone.innerHTML = `<img src="${imgSrc}">`;
                         clone.insertAdjacentHTML('beforeend', userDataTemplate(nextName, dateNext, gradeNext, commentaryNext));
                         clone.setAttribute('data-index', this.dataset.next);
@@ -236,7 +268,7 @@ function changeImage(selector, array) {
                         this.nextElementSibling.setAttribute('data-prev', calcPrev);
                         current = clone;
                         setTimeout(() => {
-                            current.style = `width:1000px;left:50%;top:50%;transform: translate(-50%, -50%);`;
+                            current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate(-50%, -50%);`;
                             current.classList.remove('_rerender-image');
                         })
                     }, 155)
@@ -254,11 +286,11 @@ function changeImage(selector, array) {
                 const commentaryPrev = prev.dataset.caption;
 
                 setTimeout(() => {
-                    current.style = `width: 1000px; left: 100%; top: 50%; transform: translate(100%, -50%);`;
+                    current.style = `width: ${imageWidth}px; left: 100%; top: 50%; transform: translate(100%, -50%);`;
                     let clone = current.cloneNode(true);
                     clone.classList.add('_rerender-image');
                     current.parentElement.insertAdjacentElement('afterbegin', clone);
-                    clone.style = `width: 1000px; left: -100%; top: 50%; transform: translate(-100%, -50%);`;
+                    clone.style = `width: ${imageWidth}px; left: -100%; top: 50%; transform: translate(-100%, -50%);`;
                     setTimeout(() => {
                         current.remove();
                         clone.innerHTML = `<img src="${imgSrc}">`;
@@ -270,7 +302,7 @@ function changeImage(selector, array) {
                         this.previousElementSibling.setAttribute('data-next', calcNext);
                         current = clone;
                         setTimeout(() => {
-                            current.style = `width:1000px;left:50%;top:50%;transform: translate(-50%, -50%);`;
+                            current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate(-50%, -50%);`;
                             current.classList.remove('_rerender-image');
                         })
                     }, 155)
@@ -280,242 +312,19 @@ function changeImage(selector, array) {
     })
 };
 
-function closedEnlargeImage(selector) {
+function closedEnlargeImage(selector, elementClose) {
     const close = document.querySelector(selector);
+    const elementClosed = document.querySelector(elementClose);
+
+    document.addEventListener('keydown', (evt) => {
+        if (evt.code === "Escape") {
+            elementClosed.remove();
+        }
+    });
 
     close.addEventListener('click', () => {
-        close.parentElement.remove();
+        elementClosed.remove();
         document.body.style.overflow = 'unset';
         document.body.style.paddingRight = `unset`;
     })
 }
-
-// function enlargeImageTemplate() {
-//     return (` 
-// 			<div class="enlarge-image__close">Close<svg><use href="/front/img/review-image/sprite.svg#closeForm"></svg></div>
-// 			<div class="enlarge-image__box"></div>
-// 			<div class="enlarge-image__arrow _enlarge-image__next"><svg><use href="/front/img/review-image/sprite.svg#arrowMFAnt"></svg></div>
-// 			<div class="enlarge-image__arrow _enlarge-image__prev"><svg><use href="/front/img/review-image/sprite.svg#arrowMFAnt"></svg></div>	
-// 	`)
-// }
-
-// function userDataTemplate(name, date, grade, comentary) {
-//     return (`<div class="enlarge-image__data">
-// 				<div class="enlarge-image__wrapper">
-// 					<div class="enlarge-image__left">
-// 						<div class="enlarge-image__name">${name}</div>
-// 						<div class="enlarge-image__date">${date}</div>
-// 					</div>
-// 					<div class="enlarge-image__right">
-// 						<span>Оценка блюду</span>
-// 						<div class="enlarge-image__grade">${grade}Нравится</div>
-// 					</div>
-// 				</div>
-// 				<div class="enlarge-image__commentary">${comentary}</div>
-// 			</div>`)
-// }
-
-// function eventImageHandler(selector) {
-//     const scrollWidth = window.innerWidth - document.documentElement.clientWidth;
-//     const images = [...document.querySelectorAll(selector)]
-//     const body = document.querySelector('body');
-
-//     const enlargeWidth = 1000;
-//     const enlargeHeight = 600;
-
-//     if (images.length !== 0) {
-//         const container = document.createElement('div');
-//         container.classList.add('enlarge-image');
-//         container.style = 'opacity:0;pointer-events:none;';
-
-//         container.insertAdjacentHTML('beforeend', enlargeImageTemplate());
-
-//         body.insertAdjacentElement('beforeend', container);
-
-//         for (let i = 0; i < images.length; i++) {
-
-//             images[i].setAttribute('data-position', i)
-
-//             images[i].addEventListener('click', function(evt) {
-//                 evt.preventDefault();
-//                 evt.stopPropagation();
-
-//                 document.body.style.overflow = 'hidden';
-//                 document.body.style.paddingRight = `${scrollWidth}px`;
-
-//                 const enlargeTop = (window.innerHeight / 2) - (enlargeHeight / 2);
-//                 const enlargeLeft = (window.innerWidth / 2) - (enlargeWidth / 2);
-
-//                 const srcBigImage = this.getAttribute('href');
-//                 const userName = this.getAttribute('data-name');
-//                 const userDate = this.getAttribute('data-date');
-//                 const userGrade = this.getAttribute('data-grade');
-//                 const userCommentary = this.getAttribute('data-caption');
-
-//                 let imageWrapper = document.createElement('div')
-//                 imageWrapper.classList.add('enlarge-image__container');
-//                 imageWrapper.setAttribute('data-position', i);
-//                 container.querySelector('.enlarge-image__box').insertAdjacentElement('afterbegin', imageWrapper);
-
-//                 const top = this.getBoundingClientRect().top;
-//                 const left = this.getBoundingClientRect().left;
-//                 const width = this.getBoundingClientRect().width;
-//                 const height = this.getBoundingClientRect().height
-
-//                 imageWrapper.style = `top:${top}px;left:${left}px;max-width:${width}px;height:${height}px;`;
-//                 imageWrapper.innerHTML = `<img src="${srcBigImage}">`
-
-//                 setTimeout(() => {
-//                     container.style = 'opacity:1;';
-//                     setTimeout(() => {
-//                         imageWrapper.style = `top:${enlargeTop}px;left:${enlargeLeft}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-//                         imageWrapper.insertAdjacentHTML('beforeend', userDataTemplate(userName, userDate, userGrade, userCommentary));
-//                         setTimeout(() => {
-//                             const descriptionHeight = parseInt(getComputedStyle(container.querySelector('.enlarge-image__data')).height);
-//                             imageWrapper.style.top = `${enlargeTop - (descriptionHeight / 2)}px`;
-//                         }, 150)
-//                     })
-//                 }, 200)
-
-
-//                 const next = container.querySelector("._enlarge-image__next");
-//                 const prev = container.querySelector("._enlarge-image__prev");
-
-//                 let j = Number(this.getAttribute('data-position'));
-
-//                 i === images.length - 1 ? next.classList.add('_disabled') : next.classList.remove('_disabled')
-//                 i === 0 ? prev.classList.add('_disabled') : prev.classList.remove('_disabled')
-
-//                 next.addEventListener('click', (evt) => {
-//                     if (j === images.length - 1) {
-//                         return false;
-//                     } else {
-//                         prev.classList.remove('_disabled');
-//                         const nextElement = images[j += 1];
-
-//                         const userNameNext = nextElement.getAttribute('data-name');
-//                         const userDateNext = nextElement.getAttribute('data-date');
-//                         const userGradeNext = nextElement.getAttribute('data-grade');
-//                         const userCommentaryNext = nextElement.getAttribute('data-caption');
-
-//                         imageWrapper.style = `left:-${window.innerWidth}px;top:${enlargeTop}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-
-//                         const cloneImageWrapper = imageWrapper.cloneNode(true);
-//                         cloneImageWrapper.setAttribute('data-position', j);
-//                         cloneImageWrapper.classList.add('_next');
-
-//                         resetCopies(j - 1, '.enlarge-image__container', 'data-position');
-
-//                         container.querySelector('.enlarge-image__box').insertAdjacentElement('afterbegin', cloneImageWrapper);
-
-//                         cloneImageWrapper.style = `left:${window.innerWidth}px;top:${enlargeTop}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-//                         cloneImageWrapper.innerHTML = `<img src="${nextElement.getAttribute('href')}">`;
-//                         cloneImageWrapper.insertAdjacentHTML('beforeend', userDataTemplate(userNameNext, userDateNext, userGradeNext, userCommentaryNext));
-
-//                         next.classList.add('_disabled');
-
-//                         setTimeout(() => {
-//                             imageWrapper.remove();
-//                             cloneImageWrapper.style = `left:${window.innerWidth}px;top:${enlargeTop}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;;
-//                             setTimeout(() => {
-//                                 imageWrapper = cloneImageWrapper;
-//                                 cloneImageWrapper.classList.remove('_next');
-//                                 cloneImageWrapper.style = `top:${enlargeTop}px;left:${enlargeLeft}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-//                                 if (j === images.length - 1) {
-//                                     next.classList.add('_disabled');
-//                                 } else {
-//                                     next.classList.remove('_disabled');
-//                                 }
-//                             })
-//                         }, 150)
-//                     }
-//                 })
-
-//                 prev.addEventListener('click', (evt) => {
-//                     if (j === 0) {
-//                         return false;
-//                     } else {
-//                         next.classList.remove('_disabled');
-//                         const prevElement = images[j -= 1];
-
-//                         const userNamePrev = prevElement.getAttribute('data-name');
-//                         const userDatePrev = prevElement.getAttribute('data-date');
-//                         const userGradePrev = prevElement.getAttribute('data-grade');
-//                         const userCommentaryPrev = prevElement.getAttribute('data-caption');
-
-//                         imageWrapper.style = `left:${window.innerWidth}px;top:${enlargeTop}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-
-//                         const cloneImageWrapper = imageWrapper.cloneNode(true);
-//                         cloneImageWrapper.setAttribute('data-position', j)
-//                         cloneImageWrapper.classList.add('_prev');
-
-//                         cloneImageWrapper.setAttribute('data-position', j)
-
-//                         resetCopies(j, '.enlarge-image__container', 'data-position');
-
-//                         container.querySelector('.enlarge-image__box').insertAdjacentElement('afterbegin', cloneImageWrapper);
-
-//                         cloneImageWrapper.style = `left:-${window.innerWidth}px;top:${enlargeTop}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-//                         cloneImageWrapper.innerHTML = `<img src="${prevElement.getAttribute('href')}">`
-//                         cloneImageWrapper.insertAdjacentHTML('beforeend', userDataTemplate(userNamePrev, userDatePrev, userGradePrev, userCommentaryPrev));
-
-//                         prev.classList.add('_disabled');
-
-//                         setTimeout(() => {
-//                             imageWrapper.remove();
-//                             cloneImageWrapper.style = `left:-${window.innerWidth}px;top:${enlargeTop}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-//                             setTimeout(() => {
-//                                 imageWrapper = cloneImageWrapper;
-//                                 cloneImageWrapper.classList.remove('_prev');
-//                                 imageWrapper.style = `top:${enlargeTop}px;left:${enlargeLeft}px;max-width:${enlargeWidth}px;height:${enlargeHeight}px;`;
-//                                 if (j === 0) {
-//                                     prev.classList.add('_disabled');
-//                                 } else {
-//                                     prev.classList.remove('_disabled');
-//                                 }
-//                             })
-//                         }, 150)
-//                     }
-//                 })
-//             })
-//         }
-//         closeEnlargeImage(container);
-//     }
-// }
-
-// function resetCopies(index, selector, attribute) {
-//     if (document.querySelector(selector)) {
-//         const containers = document.querySelectorAll(selector);
-
-//         if (containers.length >= 1) {
-//             containers.forEach((item) => {
-//                 if (index !== item.getAttribute(attribute)) {
-//                     setTimeout(() => {
-//                         item.remove();
-//                     }, 225)
-//                 }
-//             })
-//         }
-//     }
-// }
-
-// function closeEnlargeImage(selector) {
-//     selector.querySelector('.enlarge-image__close').addEventListener('click', () => {
-//         if (document.querySelector('.enlarge-image__container')) {
-//             setTimeout(() => {
-//                 const images = document.querySelectorAll('.enlarge-image__container');
-//                 images.forEach((it) => {
-//                     it.style.opacity = '0'
-//                 })
-//                 selector.style = 'opacity:0;pointer-events:none;';
-//                 setTimeout(() => {
-//                     images.forEach((it) => {
-//                         it.remove();
-//                     })
-//                 }, 250)
-//             }, 200)
-//         }
-//         document.body.style.overflow = 'unset';
-//         document.body.style.paddingRight = `unset`;
-//     })
-// }
