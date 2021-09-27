@@ -191,32 +191,47 @@ function eventImageHandler(selector) {
                     next.classList.remove('_hidden');
                     prev.classList.remove('_hidden');
 
-                    imageContainer.addEventListener('touchstart', function (evt) {
-                        console.log('touchstart', evt);
-                    });
-                    imageContainer.addEventListener('touchmove', function (evt) {
-                        let touches = evt.changedTouches;
+                    let startPoint={};
+                    let nowPoint;
+                    let ldelay;
 
-                        for(var i = 0; i < touches.length; i++) {
-                            let x = touches[i].pageX;
-                            let rect = this.getBoundingClientRect();
+                    imageContainer.addEventListener('touchstart', function(evt) {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        startPoint.x = evt.changedTouches[0].pageX;
+                        startPoint.y = evt.changedTouches[0].pageY;
+                        ldelay = new Date();
+                    }, false);
 
-                            if((rect.x) < 0){
-                                console.log(rect.left)
+                    imageContainer.addEventListener('touchmove', function(evt) {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        let otk = {};
+                        nowPoint = evt.changedTouches[0];
+                        otk.x = nowPoint.pageX - startPoint.x;
+
+                        if(Math.abs(otk.x) > 200){
+                            if(otk.x < 0){
+                                imageContainer.style.left = `${nowPoint.pageX}px`
+                                console.log(`право, ${nowPoint.pageX}`)
                             }
-
-                            if((rect.x + rect.width) > window.innerWidth) {
-                                console.log(rect.left)
+                            if(otk.x > 0){
+                                imageContainer.style.left = `${nowPoint.pageX}px`
+                                console.log(`лево, ${nowPoint.pageX}`)
                             }
-                         
-                            imageContainer.style.left = `${x}px`
+                            startPoint={
+                                x: nowPoint.pageX,
+                                y: nowPoint.pageY
+                            };
                         }
+                    }, false);
 
-                       
-                    });
-                    imageContainer.addEventListener('touchend', function (e) {
+                    imageContainer.addEventListener('touchend', function(evt) {
                         imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate(-50%, -50%);`
-                    });
+                    }, false);
+
+
+
                 }, 100)
 
                 const nextElement = parseInt(this.dataset.position) >= images.length - 1 ? parseInt(this.dataset.position) : parseInt(this.dataset.position) + 1;
