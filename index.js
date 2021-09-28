@@ -137,7 +137,7 @@ function userDataTemplate(name, date, grade, comentary) {
 }
 
 function eventImageHandler(selector) {
-    const IMAGE_WIDTH = window.innerWidth <= 1200 ? window.innerWidth / 1.2 : 1000
+    const IMAGE_WIDTH = window.innerWidth <= 1200 ? window.innerWidth / 1.1 : 1000
     const IMAGE_HEIGHT = 600 / (1000 / IMAGE_WIDTH);
 
     const images = [...document.querySelectorAll(selector)]
@@ -192,7 +192,6 @@ function eventImageHandler(selector) {
                     prev.classList.remove('_hidden');
 
                     detectionSwipe(imageContainer);
-
                 }, 100)
 
                 const nextElement = parseInt(this.dataset.position) >= images.length - 1 ? parseInt(this.dataset.position) : parseInt(this.dataset.position) + 1;
@@ -203,6 +202,7 @@ function eventImageHandler(selector) {
 
                 changeImage(next, images, IMAGE_WIDTH);
                 changeImage(prev, images, IMAGE_WIDTH);
+
             }, 10)
 
             closedEnlargeImage(".enlarge-image__close", ".enlarge-image");
@@ -216,7 +216,7 @@ function changeImage(selector, array, imageWidth) {
         evt.stopPropagation();
         let current = document.querySelector('[data-index]');
         let j = Number(current.dataset.index);
-        if (this.dataset.next) {
+        if (this.dataset.next || evt.code === "right arrow") {
             if (Number(current.dataset.index) !== Number(this.dataset.next)) {
                 let next = array[j += 1];
 
@@ -307,34 +307,41 @@ function closedEnlargeImage(selector, elementClose) {
     })
 }
 
-function detectionSwipe(swipeSelector) {
+
+function detectionSwipe(swipeElement) {
     let startPoint = {};
     let nowPoint;
-    let ldelay;
 
-    swipeSelector.addEventListener('touchstart', function(evt) {
+    swipeElement.addEventListener('touchstart', function(evt) {
         evt.preventDefault();
         evt.stopPropagation();
         startPoint.x = evt.changedTouches[0].pageX;
         startPoint.y = evt.changedTouches[0].pageY;
-        ldelay = new Date();
     }, false);
 
-    swipeSelector.addEventListener('touchmove', function(evt) {
+    swipeElement.addEventListener('touchmove', function(evt) {
         evt.preventDefault();
         evt.stopPropagation();
-        let arrayCoordinate = {};
+        const next = document.querySelector("._enlarge-image__next");
+        const prev = document.querySelector("._enlarge-image__prev");
+        let otk = {};
         nowPoint = evt.changedTouches[0];
-        arrayCoordinate.x = nowPoint.pageX - startPoint.x;
+        otk.x = nowPoint.pageX - startPoint.x;
 
-        if (Math.abs(arrayCoordinate.x) > 100) {
-            if (arrayCoordinate.x < 0) {
-                swipeSelector.style.left = `${nowPoint.pageX}px`
-                console.log(`право, ${nowPoint.pageX}`)
+        if (Math.abs(otk.x) > 250) {
+            if (otk.x < 0) {
+                swipeElement.style.left = `${nowPoint.pageX}px`
+                setTimeout(() => {
+                    console.log(`свайпнул влево`)
+                    next.click()
+                },200)
             }
-            if (arrayCoordinate.x > 0) {
-                swipeSelector.style.left = `${nowPoint.pageX}px`
-                console.log(`лево, ${nowPoint.pageX}`)
+            if (otk.x > 0) {
+                swipeElement.style.left = `${nowPoint.pageX}px`
+                setTimeout(() => {
+                    console.log(`свайпнул вправо`)
+                    prev.click()
+                },200)
             }
             startPoint = {
                 x: nowPoint.pageX,
@@ -343,7 +350,9 @@ function detectionSwipe(swipeSelector) {
         }
     }, false);
 
-    swipeSelector.addEventListener('touchend', function(evt) {
-        swipeSelector.style.left = `50%`
+    swipeElement.addEventListener('touchend', function(evt) {
+       setTimeout(() => {
+           swipeElement.style.left = `50%`;
+       }, 500)
     }, false);
-};
+}
