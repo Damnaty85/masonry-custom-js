@@ -191,46 +191,7 @@ function eventImageHandler(selector) {
                     next.classList.remove('_hidden');
                     prev.classList.remove('_hidden');
 
-                    let startPoint={};
-                    let nowPoint;
-                    let ldelay;
-
-                    imageContainer.addEventListener('touchstart', function(evt) {
-                        evt.preventDefault();
-                        evt.stopPropagation();
-                        startPoint.x = evt.changedTouches[0].pageX;
-                        startPoint.y = evt.changedTouches[0].pageY;
-                        ldelay = new Date();
-                    }, false);
-
-                    imageContainer.addEventListener('touchmove', function(evt) {
-                        evt.preventDefault();
-                        evt.stopPropagation();
-                        let otk = {};
-                        nowPoint = evt.changedTouches[0];
-                        otk.x = nowPoint.pageX - startPoint.x;
-
-                        if(Math.abs(otk.x) > 200){
-                            if(otk.x < 0){
-                                imageContainer.style.left = `${nowPoint.pageX}px`
-                                console.log(`право, ${nowPoint.pageX}`)
-                            }
-                            if(otk.x > 0){
-                                imageContainer.style.left = `${nowPoint.pageX}px`
-                                console.log(`лево, ${nowPoint.pageX}`)
-                            }
-                            startPoint={
-                                x: nowPoint.pageX,
-                                y: nowPoint.pageY
-                            };
-                        }
-                    }, false);
-
-                    imageContainer.addEventListener('touchend', function(evt) {
-                        imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate(-50%, -50%);`
-                    }, false);
-
-
+                    detectionSwipe(imageContainer);
 
                 }, 100)
 
@@ -285,6 +246,7 @@ function changeImage(selector, array, imageWidth) {
                         setTimeout(() => {
                             current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate(-50%, -50%);`;
                             current.classList.remove('_rerender-image');
+                            detectionSwipe(current);
                         })
                     }, 155)
                 })
@@ -319,6 +281,7 @@ function changeImage(selector, array, imageWidth) {
                         setTimeout(() => {
                             current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate(-50%, -50%);`;
                             current.classList.remove('_rerender-image');
+                            detectionSwipe(current);
                         })
                     }, 155)
                 })
@@ -343,3 +306,44 @@ function closedEnlargeImage(selector, elementClose) {
         document.body.style.paddingRight = `unset`;
     })
 }
+
+function detectionSwipe(swipeSelector) {
+    let startPoint = {};
+    let nowPoint;
+    let ldelay;
+
+    swipeSelector.addEventListener('touchstart', function(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        startPoint.x = evt.changedTouches[0].pageX;
+        startPoint.y = evt.changedTouches[0].pageY;
+        ldelay = new Date();
+    }, false);
+
+    swipeSelector.addEventListener('touchmove', function(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        let arrayCoordinate = {};
+        nowPoint = evt.changedTouches[0];
+        arrayCoordinate.x = nowPoint.pageX - startPoint.x;
+
+        if (Math.abs(arrayCoordinate.x) > 100) {
+            if (arrayCoordinate.x < 0) {
+                swipeSelector.style.left = `${nowPoint.pageX}px`
+                console.log(`право, ${nowPoint.pageX}`)
+            }
+            if (arrayCoordinate.x > 0) {
+                swipeSelector.style.left = `${nowPoint.pageX}px`
+                console.log(`лево, ${nowPoint.pageX}`)
+            }
+            startPoint = {
+                x: nowPoint.pageX,
+                y: nowPoint.pageY
+            };
+        }
+    }, false);
+
+    swipeSelector.addEventListener('touchend', function(evt) {
+        swipeSelector.style.left = `50%`
+    }, false);
+};
