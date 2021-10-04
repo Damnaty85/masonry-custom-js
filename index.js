@@ -1,9 +1,11 @@
-    document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
         renderGrid('.grid');
         eventImageHandler("[data-view-image]");
 
-        const loadMore = document.querySelector(".load-more");
-        loadMore.addEventListener('click', renderGrid);
+        if (document.querySelector('.grid')) {
+            const loadMore = document.querySelector(".load-more");
+            loadMore.addEventListener('click', renderGrid);
+        }
     });
 
     window.addEventListener("orientationchange", debounce(() => {
@@ -143,7 +145,7 @@
     }
 
     function eventImageHandler(selector) {
-        const IMAGE_WIDTH = window.innerWidth <= 1200 ? window.innerWidth / 1.1 : 1000
+        const IMAGE_WIDTH = window.innerWidth <= 1200 ? window.innerWidth / 1.1 : 1000;
         const IMAGE_HEIGHT = 600 / (1000 / IMAGE_WIDTH);
 
         const images = [...document.querySelectorAll(selector)]
@@ -185,8 +187,7 @@
                 container.classList.add('_opened');
 
                 setTimeout(() => {
-                    const transition = window.innerWidth < 560 && `transition:unset`;
-                    imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate3d(-50%, -50%, 0);${transition}`;
+                    imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate3d(-50%, -50%, 5em);`;
                     image.style.height = `${IMAGE_HEIGHT}px`;
 
                     const next = container.querySelector("._enlarge-image__next");
