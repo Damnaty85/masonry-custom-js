@@ -14,6 +14,7 @@
 
     window.addEventListener("resize", debounce(() => {
         renderGrid('.grid');
+        console.log(window.innerWidth <= 1200 ? window.innerWidth / 1.1 : 1000)
     }));
 
     function renderGrid(selector) {
@@ -116,7 +117,7 @@
             <div class="enlarge-image">
                 <div class="dynamic__container"></div>
                 <div class="enlarge-image__close"><svg><use href="/front/img/review-image/sprite.svg#closeForm"></svg></div>
-                ${arrowSliderTemplate()};
+                ${arrowSliderTemplate()}
             </div>
         `)
     }
@@ -198,6 +199,9 @@
                         next.classList.remove('_hidden');
                         prev.classList.remove('_hidden');
 
+                        parseInt(imageContainer.dataset.index) === parseInt(next.dataset.next) && next.classList.add('_disabled');
+                        parseInt(imageContainer.dataset.index) === parseInt(prev.dataset.prev) && prev.classList.add('_disabled');
+
                         detectionSwipe(imageContainer);
                     }, 100)
 
@@ -245,6 +249,7 @@
                             clone.innerHTML = `<img src="${imgSrc}">`;
                             clone.insertAdjacentHTML('beforeend', userDataTemplate(nextName, dateNext, gradeNext, commentaryNext));
                             clone.setAttribute('data-index', this.dataset.next);
+                            
                             const calcNext = parseInt(this.dataset.next) === array.length - 1 ? array.length - 1 : parseInt(this.dataset.next) + 1;
                             const calcPrev = parseInt(clone.dataset.index) === 1 ? 0 : parseInt(this.nextElementSibling.dataset.prev) + 1;
                             this.setAttribute('data-next', calcNext);
@@ -254,6 +259,9 @@
                                 current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate3d(-50%, -50%, 0);`;
                                 current.classList.remove('_rerender-image');
                                 detectionSwipe(current);
+                                
+                                parseInt(current.dataset.index) === parseInt(this.dataset.next) && this.classList.add('_disabled');
+                                this.nextElementSibling.classList.contains('_disabled') && this.nextElementSibling.classList.remove('_disabled');
                             })
                         }, 155)
                     })
@@ -280,6 +288,7 @@
                             clone.innerHTML = `<img src="${imgSrc}">`;
                             clone.insertAdjacentHTML('beforeend', userDataTemplate(prevName, datePrev, gradePrev, commentaryPrev));
                             clone.setAttribute('data-index', this.dataset.prev);
+                            
                             const calcPrev = parseInt(clone.dataset.index) === 0 ? 0 : parseInt(this.dataset.prev) - 1;
                             const calcNext = parseInt(clone.dataset.index) === array.length - 2 ? array.length - 1 : parseInt(this.previousElementSibling.dataset.next) - 1;
                             this.setAttribute('data-prev', calcPrev);
@@ -289,6 +298,9 @@
                                 current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate3d(-50%, -50%, 0);`;
                                 current.classList.remove('_rerender-image');
                                 detectionSwipe(current);
+
+                                parseInt(clone.dataset.index) === parseInt(this.dataset.prev) && this.classList.add('_disabled');
+                                this.previousElementSibling.classList.contains('_disabled') && this.previousElementSibling.classList.remove('_disabled');
                             })
                         }, 155)
                     })
