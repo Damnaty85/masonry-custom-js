@@ -1,81 +1,108 @@
-if (document.querySelector('.grid')) {
-    const wrapper = document.querySelector('.grid');
-    const elements = [...wrapper.children];
-    const loadMore = document.querySelector(".load-more");
-
-
-    loadMore.addEventListener('click', renderGrid);
-    document.addEventListener('DOMContentLoaded', () => {
-        renderGrid();
+document.addEventListener('DOMContentLoaded', () => {
+        renderGrid('.grid');
         eventImageHandler("[data-view-image]");
+
+        if (document.querySelector('.grid')) {
+            const loadMore = document.querySelector(".load-more");
+            loadMore.addEventListener('click', renderGrid);
+        }
+
+
+        let lazyImages = [].slice.call(document.querySelectorAll(".lazy-image"));
+
+        if ("IntersectionObserver" in window) {
+            let lazyImageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach( (entry) => {
+                    if (entry.isIntersecting) {
+                        let lazyImage = entry.target;
+                        lazyImage.src = lazyImage.dataset.src;
+                        lazyImage.classList.remove(".lazy-image");
+                        lazyImageObserver.unobserve(lazyImage);
+                    }
+                });
+            });
+            lazyImages.forEach((lazyImage) => {
+                lazyImageObserver.observe(lazyImage);
+            });
+        }
     });
+
     window.addEventListener("orientationchange", debounce(() => {
-        renderGrid();
+        renderGrid('.grid');
     }));
+
     window.addEventListener("resize", debounce(() => {
-        renderGrid();
+        renderGrid('.grid');
+        console.log(window.innerWidth <= 1200 ? window.innerWidth / 1.1 : 1000)
     }));
 
-    function renderGrid() {
-        const CONTAINER_WIDTH = 1170;
-        const TABLET_WIDTH = 820;
-        const MOBILE_WIDTH = 560;
+    function renderGrid(selector) {
+        if (document.querySelector(selector)) {
+            const wrapper = document.querySelector(selector);
+            const elements = [...wrapper.children];
 
-        let INDENT = window.innerWidth <= MOBILE_WIDTH ? 20 : window.innerWidth >= CONTAINER_WIDTH ? 35 : 10;
-        let COLUMNS = window.innerWidth <= MOBILE_WIDTH ? 1 : window.innerWidth >= TABLET_WIDTH ? 3 : 2;
+            const CONTAINER_WIDTH = 1170;
+            const TABLET_WIDTH = 820;
+            const MOBILE_WIDTH = 560;
 
-        let width = window.innerWidth >= MOBILE_WIDTH ? (parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - INDENT * 2) / COLUMNS : parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) / COLUMNS;
+            let INDENT = window.innerWidth <= MOBILE_WIDTH ? 20 : window.innerWidth >= CONTAINER_WIDTH ? 35 : 10;
+            let COLUMNS = window.innerWidth <= MOBILE_WIDTH ? 1 : window.innerWidth >= TABLET_WIDTH ? 3 : 2;
 
-        const widthElement = `${width}px`;
+            let width = window.innerWidth >= MOBILE_WIDTH ? (parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) - INDENT * 2) / COLUMNS : parseInt(window.getComputedStyle(wrapper).getPropertyValue('width')) / COLUMNS;
 
-        wrapper.removeAttribute('style');
-        wrapper.style.maxWidth = `${CONTAINER_WIDTH}px`;
+            const widthElement = `${width}px`;
 
-        elements.forEach((element) => {
-            element.removeAttribute('style');
-        })
+            wrapper.removeAttribute('style');
+            wrapper.style.maxWidth = `${CONTAINER_WIDTH}px`;
 
-        calculateElementPosition(CONTAINER_WIDTH, widthElement, COLUMNS, INDENT)
-        calculateContainerHeight(COLUMNS, INDENT);
+            elements.forEach((element) => {
+                element.removeAttribute('style');
+            })
+
+            calculateElementPosition(elements, CONTAINER_WIDTH, widthElement, COLUMNS, INDENT)
+            calculateContainerHeight(wrapper, elements, COLUMNS, INDENT);
+        } else {
+            return false;
+        }
     }
 
-    function calculateElementPosition(width, calcWidth, col, indent) {
+    function calculateElementPosition(elementList, width, calcWidth, col, indent) {
         let top;
         let left;
-        for (let i = 1; i < elements.length; i++) {
+        for (let i = 1; i < elementList.length; i++) {
             if (window.innerWidth <= width) {
-                elements[0].style.width = calcWidth;
-                elements[i].style.width = calcWidth;
+                elementList[0].style.width = calcWidth;
+                elementList[i].style.width = calcWidth;
             }
             if (i % col == 0) {
-                top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
-                elements[i].style.top = `${top}px`;
+                top = (elementList[i - col].offsetTop + elementList[i - col].offsetHeight) + indent;
+                elementList[i].style.top = `${top}px`;
             } else {
-                if (elements[i - col]) {
-                    top = (elements[i - col].offsetTop + elements[i - col].offsetHeight) + indent;
-                    elements[i].style.top = `${top}px`;
+                if (elementList[i - col]) {
+                    top = (elementList[i - col].offsetTop + elementList[i - col].offsetHeight) + indent;
+                    elementList[i].style.top = `${top}px`;
                 }
-                left = (elements[i - 1].offsetLeft + elements[i - 1].offsetWidth) + indent;
-                elements[i].style.left = `${left + 1}px`;
+                left = (elementList[i - 1].offsetLeft + elementList[i - 1].offsetWidth) + indent;
+                elementList[i].style.left = `${left + 1}px`;
             }
         }
     }
 
-    function calculateHeightInColumn(array, col) {
+    function calculateHeightInColumn(elementList, array, col) {
         if (array.length !== 0) {
-            const elementInColumn = elements.length / col;
+            const elementInColumn = Math.ceil(elementList.length / col);
             const wrapperHeight = array.sort((a, b) => b - a).slice(0, elementInColumn).reduce((a, b) => a + b);
             return wrapperHeight;
         }
         return false;
     }
 
-    function calculateContainerHeight(col, indent) {
+    function calculateContainerHeight(container, elementList, col, indent) {
         const elementsHeightColumnOne = [];
         const elementsHeightColumnTwo = [];
         const elementsHeightColumnThree = [];
 
-        for (let [index, element] of elements.entries()) {
+        for (let [index, element] of elementList.entries()) {
 
             if (index % col == 0) {
                 elementsHeightColumnOne.push(element.offsetHeight + indent);
@@ -86,14 +113,14 @@ if (document.querySelector('.grid')) {
             }
         }
 
-        const heightInColumnOne = calculateHeightInColumn(elementsHeightColumnOne, col);
-        const heightInColumnTwo = calculateHeightInColumn(elementsHeightColumnTwo, col);
-        const heightInColumnThree = calculateHeightInColumn(elementsHeightColumnThree, col);
+        const heightInColumnOne = calculateHeightInColumn(elementList, elementsHeightColumnOne, col);
+        const heightInColumnTwo = calculateHeightInColumn(elementList, elementsHeightColumnTwo, col);
+        const heightInColumnThree = calculateHeightInColumn(elementList, elementsHeightColumnThree, col);
 
         const arrayColumnHeigt = [heightInColumnOne, heightInColumnTwo, heightInColumnThree];
-
         const height = arrayColumnHeigt.sort((a, b) => b - a).slice(0, 1);
-        wrapper.style.height = `${height[0] - indent}px`
+
+        container.style.height = `${height[0] - indent}px`
     }
 
     function debounce(func) {
@@ -109,6 +136,7 @@ if (document.querySelector('.grid')) {
             <div class="enlarge-image">
                 <div class="dynamic__container"></div>
                 <div class="enlarge-image__close"><svg><use href="/front/img/review-image/sprite.svg#closeForm"></svg></div>
+                ${arrowSliderTemplate()}
             </div>
         `)
     }
@@ -137,7 +165,7 @@ if (document.querySelector('.grid')) {
     }
 
     function eventImageHandler(selector) {
-        const IMAGE_WIDTH = window.innerWidth <= 1200 ? window.innerWidth / 1.1 : 1000
+        const IMAGE_WIDTH = window.innerWidth <= 1200 ? window.innerWidth / 1.1 : 1000;
         const IMAGE_HEIGHT = 600 / (1000 / IMAGE_WIDTH);
 
         const images = [...document.querySelectorAll(selector)]
@@ -179,31 +207,19 @@ if (document.querySelector('.grid')) {
                 container.classList.add('_opened');
 
                 setTimeout(() => {
-                    imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate(-50%, -50%);`
+                    imageContainer.style = `width:${IMAGE_WIDTH}px;left:50%;top:50%;transform: translate3d(-50%, -50%, 0);`;
                     image.style.height = `${IMAGE_HEIGHT}px`;
-                    imageContainer.parentElement.insertAdjacentHTML('beforeend', arrowSliderTemplate());
 
                     const next = container.querySelector("._enlarge-image__next");
                     const prev = container.querySelector("._enlarge-image__prev");
 
-
-                    document.addEventListener('keydown', (evt) => {
-                        if (evt.code === "ArrowRight") {
-                            next.click();
-                        }
-                    });
-
-                    document.addEventListener('keydown', (evt) => {
-                        if (evt.code === "ArrowLeft") {
-                            prev.click();
-                        }
-                    });
-
-
                     setTimeout(() => {
-                        imageContainer.insertAdjacentHTML('beforeend', userDataTemplate(userName, userDate, userGrade, userCommentary))
+                        imageContainer.insertAdjacentHTML('beforeend', userDataTemplate(userName, userDate, userGrade, userCommentary));
                         next.classList.remove('_hidden');
                         prev.classList.remove('_hidden');
+
+                        parseInt(imageContainer.dataset.index) === parseInt(next.dataset.next) && next.classList.add('_disabled');
+                        parseInt(imageContainer.dataset.index) === parseInt(prev.dataset.prev) && prev.classList.add('_disabled');
 
                         detectionSwipe(imageContainer);
                     }, 100)
@@ -230,7 +246,7 @@ if (document.querySelector('.grid')) {
             evt.stopPropagation();
             let current = document.querySelector('[data-index]');
             let j = Number(current.dataset.index);
-            if (this.dataset.next || evt.code === "right arrow") {
+            if (this.dataset.next) {
                 if (Number(current.dataset.index) !== Number(this.dataset.next)) {
                     let next = array[j += 1];
 
@@ -240,30 +256,34 @@ if (document.querySelector('.grid')) {
                     const gradeNext = next.dataset.grade;
                     const commentaryNext = next.dataset.caption;
 
-                    setTimeout(() => {
-                        current.style = `width: ${imageWidth}px; left: -100%; top: 50%; transform: translate(-50%, -50%);`;
+                    (() => {
+                        current.style = `width: ${imageWidth}px; left: -100%; top: 50%; transform: translate3d(-50%, -50%, 0);`;
                         let clone = current.cloneNode(true);
                         clone.classList.add('_rerender-image');
                         current.parentElement.insertAdjacentElement('afterbegin', clone);
-                        clone.style = `width: ${imageWidth}px; right: -100%; top: 50%; transform: translate(100%, -50%);`;
+                        clone.style = `width: ${imageWidth}px; right: -100%; top: 50%; transform: translate3d(100%, -50%, 0);`;
                         setTimeout(() => {
                             current.remove();
-                            clone.style = `width: ${imageWidth}px; right: 50%; top: 50%; transform: translate(50%, -50%);`
+                            clone.style = `width: ${imageWidth}px; right: 50%; top: 50%; transform: translate3d(50%, -50%, 0);`
                             clone.innerHTML = `<img src="${imgSrc}">`;
                             clone.insertAdjacentHTML('beforeend', userDataTemplate(nextName, dateNext, gradeNext, commentaryNext));
                             clone.setAttribute('data-index', this.dataset.next);
+                            
                             const calcNext = parseInt(this.dataset.next) === array.length - 1 ? array.length - 1 : parseInt(this.dataset.next) + 1;
                             const calcPrev = parseInt(clone.dataset.index) === 1 ? 0 : parseInt(this.nextElementSibling.dataset.prev) + 1;
                             this.setAttribute('data-next', calcNext);
                             this.nextElementSibling.setAttribute('data-prev', calcPrev);
                             current = clone;
-                            setTimeout(() => {
-                                current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate(-50%, -50%);`;
+                            (() => {
+                                current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate3d(-50%, -50%, 0);`;
                                 current.classList.remove('_rerender-image');
                                 detectionSwipe(current);
-                            })
+                                
+                                parseInt(current.dataset.index) === parseInt(this.dataset.next) && this.classList.add('_disabled');
+                                this.nextElementSibling.classList.contains('_disabled') && this.nextElementSibling.classList.remove('_disabled');
+                            })();
                         }, 155)
-                    })
+                    })();
                 }
             }
             if (this.dataset.prev) {
@@ -276,29 +296,33 @@ if (document.querySelector('.grid')) {
                     const gradePrev = prev.dataset.grade;
                     const commentaryPrev = prev.dataset.caption;
 
-                    setTimeout(() => {
-                        current.style = `width: ${imageWidth}px; left: 100%; top: 50%; transform: translate(100%, -50%);`;
+                    (() => {
+                        current.style = `width: ${imageWidth}px; left: 100%; top: 50%; transform: translate3d(100%, -50%, 0);`;
                         let clone = current.cloneNode(true);
                         clone.classList.add('_rerender-image');
                         current.parentElement.insertAdjacentElement('afterbegin', clone);
-                        clone.style = `width: ${imageWidth}px; left: -100%; top: 50%; transform: translate(-100%, -50%);`;
+                        clone.style = `width: ${imageWidth}px; left: -100%; top: 50%; transform: translate3d(-100%, -50%, 0);`;
                         setTimeout(() => {
                             current.remove();
                             clone.innerHTML = `<img src="${imgSrc}">`;
                             clone.insertAdjacentHTML('beforeend', userDataTemplate(prevName, datePrev, gradePrev, commentaryPrev));
                             clone.setAttribute('data-index', this.dataset.prev);
+                            
                             const calcPrev = parseInt(clone.dataset.index) === 0 ? 0 : parseInt(this.dataset.prev) - 1;
                             const calcNext = parseInt(clone.dataset.index) === array.length - 2 ? array.length - 1 : parseInt(this.previousElementSibling.dataset.next) - 1;
                             this.setAttribute('data-prev', calcPrev);
                             this.previousElementSibling.setAttribute('data-next', calcNext);
                             current = clone;
-                            setTimeout(() => {
-                                current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate(-50%, -50%);`;
+                            (() => {
+                                current.style = `width:${imageWidth}px;left:50%;top:50%;transform: translate3d(-50%, -50%, 0);`;
                                 current.classList.remove('_rerender-image');
                                 detectionSwipe(current);
-                            })
+
+                                parseInt(clone.dataset.index) === parseInt(this.dataset.prev) && this.classList.add('_disabled');
+                                this.previousElementSibling.classList.contains('_disabled') && this.previousElementSibling.classList.remove('_disabled');
+                            })();
                         }, 155)
-                    })
+                    })();
                 }
             }
         })
@@ -344,13 +368,12 @@ if (document.querySelector('.grid')) {
             swipeElement.style.left = `${nowPoint.pageX}px`
 
             if (Math.abs(otk.x) > window.innerWidth / 4) {
+
                 if (nowPoint.pageX <= startPoint.x) {
-                    console.log(`свайп влево`)
                     next.click()
                 }
 
                 if (nowPoint.pageX >= startPoint.x) {
-                    console.log(`свайп вправо`)
                     prev.click()
                 }
 
@@ -367,4 +390,3 @@ if (document.querySelector('.grid')) {
             }, 300)
         }, false);
     }
-}
