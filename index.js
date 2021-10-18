@@ -206,18 +206,20 @@
                 container.classList.add('_opened');
 
                 setTimeout(() => {
-                    imageContainer.style = `width:${IMAGE_WIDTH}px;left:${(window.innerWidth/2) - (IMAGE_WIDTH/2)}px;top:${(window.innerHeight/2) - (IMAGE_HEIGHT/2)}px;`;
+                    
+                    imageContainer.insertAdjacentHTML('beforeend', userDataTemplate(userName, userDate, userGrade, userCommentary));
+                    imageContainer.style = `width:${IMAGE_WIDTH}px;left:${(window.innerWidth/2) - (IMAGE_WIDTH/2)}px;top:${(window.innerHeight/2) - ((IMAGE_HEIGHT + imageContainer.querySelector('.enlarge-image__data').offsetHeight)/2)}px`;
                     image.style.height = `${IMAGE_HEIGHT}px`;
 
                     const next = container.querySelector("._enlarge-image__next");
                     const prev = container.querySelector("._enlarge-image__prev");
 
                     setTimeout(() => {
-                        imageContainer.insertAdjacentHTML('beforeend', userDataTemplate(userName, userDate, userGrade, userCommentary));
-                        setTimeout(() => {
-                            imageContainer.querySelector('.enlarge-image__data').classList.add('_showing');
-                            imageContainer.style = `width:${IMAGE_WIDTH}px;left:${(window.innerWidth/2) - (IMAGE_WIDTH/2)}px;top:${(window.innerHeight/2) - ((IMAGE_HEIGHT)/2) - imageContainer.querySelector('.enlarge-image__data').offsetHeight}px;`;
-                        }, 200)
+                        
+                        
+                        imageContainer.querySelector('.enlarge-image__data').classList.add('_showing');
+                       
+                   
                         next.classList.remove('_hidden');
                         prev.classList.remove('_hidden');
 
